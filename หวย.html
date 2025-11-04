@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <title>บันทึกหวย</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      background-color: #1a1a1a;
+      color: white;
+      font-family: "Prompt", sans-serif;
+      text-align: center;
+      padding: 20px;
+      position: relative;
+    }
+    .top-right-button {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background-color: #444;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 16px;
+      z-index: 500;
+      text-decoration: none;
+      display: inline-block;
+    }
+    .top-right-button:hover {
+      background-color: #555;
+      text-decoration: none;
+      color: white;
+    }
+    table {
+      margin: 20px auto;
+      border-collapse: collapse;
+      width: 90%;
+      color: white;
+    }
+    th, td {
+      border: 1px solid #555;
+      padding: 8px;
+      text-align: center;
+    }
+    th {
+      background-color: #333;
+    }
+    input {
+      width: 80%;
+      padding: 6px;
+      border-radius: 6px;
+      border: 1px solid #666;
+      background-color: #222;
+      color: white;
+    }
+    button {
+      background-color: #007bff;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      margin: 5px;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+    button.submit {
+      background-color: #28a745 !important;
+    }
+    button.submit:hover {
+      background-color: #218838 !important;
+    }
+    .danger {
+      background-color: #dc3545;
+    }
+    .danger:hover {
+      background-color: #b52a37;
+    }
+  </style>
+</head>
+<body>
+
+  <a href="ส่งให้เจ้า.html" class="top-right-button">หน้าส่งให้เจ้า</a>
+
+  <h2>บันทึกหวย</h2>
+
+  <table>
+    <tr>
+      <th>ใส่เลข 1-5 ตัว</th>
+      <th>บน (บาท)</th>
+      <th>ล่าง (บาท)</th>
+      <th>ตรง (บาท)</th>
+      <th>โต๊ด (บาท)</th>
+    </tr>
+    <tr>
+      <td><input type="text" id="number" maxlength="5" inputmode="numeric" pattern="\\d{1,5}" placeholder="เช่น 7, 23, 4567 หรือ 12345"></td>
+      <td><input type="number" id="top" placeholder="เช่น 50"></td>
+      <td><input type="number" id="bottom" placeholder="เช่น 20"></td>
+      <td><input type="number" id="straight" placeholder="เช่น 100"></td>
+      <td><input type="number" id="tod" placeholder="เช่น 50"></td>
+    </tr>
+  </table>
+
+  <button class="submit" onclick="addRecord()">submit</button>
+  <button onclick="multiplyValues(3)">คูณ 3</button>
+  <button onclick="multiplyValues(6)">คูณ 6</button>
+  <button class="danger" onclick="resetAll()">รีเซ็ตทั้งหมด</button>
+
+  <h2>ยอดรวม</h2>
+
+  <h4>เลข 1 ตัว</h4>
+  <table id="summaryTable1">
+    <tr>
+      <th>เลข</th>
+      <th>บน</th>
+      <th>ล่าง</th>
+      <th>เลข</th>
+      <th>บน</th>
+      <th>ล่าง</th>
+    </tr>
+  </table>
+
+  <h4>เลข 2 ตัว</h4>
+  <table id="summaryTable2">
+    <tr>
+      <th>เลข</th>
+      <th>บน</th>
+      <th>ล่าง</th>
+      <th>เลข</th>
+      <th>บน</th>
+      <th>ล่าง</th>
+    </tr>
+  </table>
+
+  <h4>เลข 3 ตัว</h4>
+  <table id="summaryTable3">
+    <tr>
+      <th>เลข</th>
+      <th>ตรง</th>
+      <th>โต๊ด</th>
+      <th>ล่าง</th>
+      <th>เลข</th>
+      <th>ตรง</th>
+      <th>โต๊ด</th>
+      <th>ล่าง</th>
+    </tr>
+  </table>
+
+  <h4>เลข 4 ตัว</h4>
+  <table id="summaryTable4">
+    <tr>
+      <th>เลข</th>
+      <th>บน</th>
+      <th>เลข</th>
+      <th>บน</th>
+    </tr>
+  </table>
+
+  <h4>เลข 5 ตัว</h4>
+  <table id="summaryTable5">
+    <tr>
+      <th>เลข</th>
+      <th>บน</th>
+      <th>เลข</th>
+      <th>บน</th>
+    </tr>
+  </table>
+
+  <script>
+    let summary = {};
+    let sendSummary = {};
+    let sendBillNumber = 1;
+
+    // โหลดข้อมูลจาก localStorage ตอนเปิดเว็บ
+    window.onload = () => {
+      const saved = localStorage.getItem("lottoSummary");
+      const savedSend = localStorage.getItem("lottoSend");
+      const savedBill = localStorage.getItem("lottoSendBill");
+      if (saved) {
+        summary = JSON.parse(saved);
+        updateTable();
+      }
+      if (savedSend) {
+        sendSummary = JSON.parse(savedSend);
+      }
+      if (savedBill) {
+        sendBillNumber = Number(savedBill) || 1;
+      }
+    };
+
+    function addRecord() {
+      const num = document.getElementById('number').value.trim();
+      const top = Number(document.getElementById('top').value);
+      const bottom = Number(document.getElementById('bottom').value);
+      const straight = Number(document.getElementById('straight').value);
+      const tod = Number(document.getElementById('tod').value);
+
+      if (!/^\d{1,5}$/.test(num)) {
+        alert('กรุณาใส่เลข 1-5 ตัว (0-9)');
+        return;
+      }
+
+      ensureSummary(num);
+      ensureSend(num);
+
+      const caps = getCaps(num);
+
+      // กระจายยอดตามเพดาน (คงไว้ในหน้าหวยเท่าที่เหลือ capacity ส่วนเกินย้ายไป send)
+      distribute('top', top, caps.top, num);
+      distribute('bottom', bottom, caps.bottom, num);
+      distribute('straight', straight, caps.straight, num);
+      distribute('tod', tod, caps.tod, num);
+
+      saveData();
+      updateTable();
+
+      document.getElementById('number').value = '';
+      document.getElementById('top').value = '';
+      document.getElementById('bottom').value = '';
+      document.getElementById('straight').value = '';
+      document.getElementById('tod').value = '';
+    }
+
+    function ensureSummary(num) {
+      if (!summary[num]) summary[num] = { top: 0, bottom: 0, straight: 0, tod: 0 };
+    }
+
+    function ensureSend(num) {
+      if (!sendSummary[num]) sendSummary[num] = { top: 0, bottom: 0, straight: 0, tod: 0 };
+    }
+
+    function getCaps(num) {
+      const len = num.length;
+      // ค่าจำกัดต่อเลขในหน้าหวย
+      switch (len) {
+        case 1: return { top: 5000, bottom: 5000, straight: 0, tod: 0 };
+        case 2: return { top: 500, bottom: 500, straight: 0, tod: 0 };
+        case 3: return { top: 0, bottom: 0, straight: 300, tod: 700 }; // ล่างไม่จำกัดตามคำขอ
+        case 4: return { top: 1000, bottom: 0, straight: 0, tod: 0 };
+        case 5: return { top: 2000, bottom: 0, straight: 0, tod: 0 };
+        default: return { top: 0, bottom: 0, straight: 0, tod: 0 };
+      }
+    }
+
+    function distribute(field, amount, cap, num) {
+      if (isNaN(amount) || amount <= 0) return;
+      if (!cap) {
+        // ไม่มีเพดาน (ไม่จำกัด) -> เก็บทั้งหมดไว้ในหน้าหวย
+        summary[num][field] += amount;
+        return;
+      }
+      const current = summary[num][field] || 0;
+      const remaining = Math.max(cap - current, 0);
+      const toMain = Math.min(amount, remaining);
+      const overflow = amount - toMain;
+      if (toMain > 0) summary[num][field] = current + toMain;
+      if (overflow > 0) {
+        sendSummary[num][field] = (sendSummary[num][field] || 0) + overflow;
+        // ทำเครื่องหมายว่ามีการย้ายเข้าหน้าส่งให้เจ้าในบิลปัจจุบัน
+        localStorage.setItem("lottoSendBill", String(sendBillNumber));
+      }
+    }
+
+    function multiplyValues(multiplier) {
+      const top = document.getElementById('top').value;
+      const bottom = document.getElementById('bottom').value;
+      const straight = document.getElementById('straight').value;
+      const tod = document.getElementById('tod').value;
+
+      if (top && !isNaN(top)) {
+        document.getElementById('top').value = Number(top) * multiplier;
+      }
+      if (bottom && !isNaN(bottom)) {
+        document.getElementById('bottom').value = Number(bottom) * multiplier;
+      }
+      if (straight && !isNaN(straight)) {
+        document.getElementById('straight').value = Number(straight) * multiplier;
+      }
+      if (tod && !isNaN(tod)) {
+        document.getElementById('tod').value = Number(tod) * multiplier;
+      }
+    }
+
+    function updateTable() {
+      const allKeys = Object.keys(summary).sort((a, b) => a.localeCompare(b));
+
+      const by1 = allKeys.filter(k => k.length === 1);
+      const by2 = allKeys.filter(k => k.length === 2);
+      const by3 = allKeys.filter(k => k.length === 3);
+      const by4 = allKeys.filter(k => k.length === 4);
+      const by5 = allKeys.filter(k => k.length === 5);
+
+      renderTable('summaryTable1', by1);
+      renderTable('summaryTable2', by2);
+      renderTable('summaryTable3', by3);
+      renderTable('summaryTable4', by4);
+      renderTable('summaryTable5', by5);
+    }
+
+    function renderTable(tableId, keys) {
+      const table = document.getElementById(tableId);
+      if (!table) return;
+
+      const is3 = tableId === 'summaryTable3';
+      const is45 = tableId === 'summaryTable4' || tableId === 'summaryTable5';
+      table.innerHTML = is3 ? `
+        <tr>
+          <th>เลข</th>
+          <th>ตรง</th>
+          <th>โต๊ด</th>
+          <th>ล่าง</th>
+          <th>เลข</th>
+          <th>ตรง</th>
+          <th>โต๊ด</th>
+          <th>ล่าง</th>
+        </tr>
+      ` : is45 ? `
+        <tr>
+          <th>เลข</th>
+          <th>บน</th>
+          <th>เลข</th>
+          <th>บน</th>
+        </tr>
+      ` : `
+        <tr>
+          <th>เลข</th>
+          <th>บน</th>
+          <th>ล่าง</th>
+          <th>เลข</th>
+          <th>บน</th>
+          <th>ล่าง</th>
+        </tr>
+      `;
+
+      // จัดเรียงแบบลงล่างก่อน แล้วค่อยไปขวา (column-major)
+      const columnsPerSide = is3 ? 3 : (is45 ? 1 : 2); // ไม่รวมคอลัมน์เลข
+      const rows = Math.ceil(keys.length / 2);
+      for (let i = 0; i < rows; i++) {
+        const row = table.insertRow(-1);
+        const leftKey = keys[i];
+        const rightKey = keys[i + rows];
+
+        // ซ้าย
+        if (leftKey) {
+          row.insertCell(0).innerText = leftKey;
+          if (is3) {
+            const straight = summary[leftKey].straight || 0;
+            const tod = summary[leftKey].tod || 0;
+            row.insertCell(1).innerText = straight + ' บาท'; // ตรง
+            row.insertCell(2).innerText = tod + ' บาท'; // โต๊ด
+            row.insertCell(3).innerText = summary[leftKey].bottom + ' บาท'; // ล่าง
+          } else if (is45) {
+            row.insertCell(1).innerText = summary[leftKey].top + ' บาท'; // บนเท่านั้น
+          } else {
+            row.insertCell(1).innerText = summary[leftKey].top + ' บาท';
+            row.insertCell(2).innerText = summary[leftKey].bottom + ' บาท';
+          }
+        } else {
+          row.insertCell(0).innerText = '';
+          for (let i = 0; i < columnsPerSide; i++) row.insertCell(1 + i).innerText = '';
+        }
+
+        // ขวา
+        if (rightKey) {
+          const start = is3 ? 4 : (is45 ? 2 : 3);
+          row.insertCell(start).innerText = rightKey;
+          if (is3) {
+            const straight = summary[rightKey].straight || 0;
+            const tod = summary[rightKey].tod || 0;
+            row.insertCell(start + 1).innerText = straight + ' บาท'; // ตรง
+            row.insertCell(start + 2).innerText = tod + ' บาท'; // โต๊ด
+            row.insertCell(start + 3).innerText = summary[rightKey].bottom + ' บาท'; // ล่าง
+          } else if (is45) {
+            row.insertCell(start + 1).innerText = summary[rightKey].top + ' บาท'; // บนเท่านั้น
+          } else {
+            row.insertCell(start + 1).innerText = summary[rightKey].top + ' บาท';
+            row.insertCell(start + 2).innerText = summary[rightKey].bottom + ' บาท';
+          }
+        } else {
+          const start = is3 ? 4 : (is45 ? 2 : 3);
+          row.insertCell(start).innerText = '';
+          for (let i = 0; i < columnsPerSide; i++) row.insertCell(start + 1 + i).innerText = '';
+        }
+      }
+    }
+
+    function saveData() {
+      localStorage.setItem("lottoSummary", JSON.stringify(summary));
+      localStorage.setItem("lottoSend", JSON.stringify(sendSummary));
+    }
+
+    function resetAll() {
+      if (confirm('แน่ใจไหมว่าจะลบข้อมูลทั้งหมด?')) {
+        summary = {};
+        localStorage.removeItem("lottoSummary");
+        updateTable();
+      }
+    }
+  </script>
+
+</body>
+</html>

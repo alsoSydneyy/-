@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <title>ส่งให้เจ้า - สรุปยอดรวม</title>
+  <style>
+    body {
+      background-color: #1a1a1a;
+      color: white;
+      font-family: "Prompt", sans-serif;
+      text-align: center;
+      padding: 20px;
+      position: relative;
+    }
+    .back-button {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      background-color: #444;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 6px;
+      cursor: pointer;
+      text-decoration: none;
+      font-size: 16px;
+      z-index: 500;
+    }
+    .back-button:hover {
+      background-color: #555;
+      color: white;
+      text-decoration: none;
+    }
+    .top-actions {
+      position: relative;
+      margin-top: 8px;
+      margin-bottom: 8px;
+    }
+    .bill-badge {
+      display: inline-block;
+      background-color: #333;
+      color: #fff;
+      border-radius: 6px;
+      padding: 6px 12px;
+      font-size: 14px;
+      margin-left: 12px;
+      display: none;
+    }
+    /* ใช้ปุ่มสีแดงแบบเดียวกับหน้าหวยผ่าน .danger */
+    table {
+      margin: 20px auto;
+      border-collapse: collapse;
+      width: 90%;
+      color: white;
+    }
+    th, td {
+      border: 1px solid #555;
+      padding: 8px;
+      text-align: center;
+    }
+    th {
+      background-color: #333;
+    }
+    input {
+      width: 80%;
+      padding: 6px;
+      border-radius: 6px;
+      border: 1px solid #666;
+      background-color: #222;
+      color: white;
+    }
+    button {
+      background-color: #007bff;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      margin: 5px;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+    .danger {
+      background-color: #dc3545;
+    }
+    .danger:hover {
+      background-color: #b52a37;
+    }
+  </style>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <a href="หวย.html" class="back-button">←Back</a>
+
+  <div class="top-actions">
+    <h2 style="display:inline-block;margin:0 0 10px 0;">สรุปยอดรวม (ส่งให้เจ้า)</h2>
+    <span class="bill-badge">บิลที่ <span id="billNo">1</span></span>
+    <button class="danger" onclick="closeBill()">รีเซตทั้งหมด</button>
+  </div>
+
+  <h4>เลข 1 ตัว</h4>
+  <table id="summaryTable1">
+    <tr>
+      <th>เลข</th>
+      <th>บน</th>
+      <th>ล่าง</th>
+      <th>เลข</th>
+      <th>บน</th>
+      <th>ล่าง</th>
+    </tr>
+  </table>
+
+  <h4>เลข 2 ตัว</h4>
+  <table id="summaryTable2">
+    <tr>
+      <th>เลข</th>
+      <th>บน</th>
+      <th>ล่าง</th>
+      <th>เลข</th>
+      <th>บน</th>
+      <th>ล่าง</th>
+    </tr>
+  </table>
+
+  <h4>เลข 3 ตัว</h4>
+  <table id="summaryTable3">
+    <tr>
+      <th>เลข</th>
+      <th>ตรง</th>
+      <th>โต๊ด</th>
+      <th>ล่าง</th>
+      <th>เลข</th>
+      <th>ตรง</th>
+      <th>โต๊ด</th>
+      <th>ล่าง</th>
+    </tr>
+  </table>
+
+  <h4>เลข 4 ตัว</h4>
+  <table id="summaryTable4">
+    <tr>
+      <th>เลข</th>
+      <th>บน</th>
+      <th>เลข</th>
+      <th>บน</th>
+    </tr>
+  </table>
+
+  <h4>เลข 5 ตัว</h4>
+  <table id="summaryTable5">
+    <tr>
+      <th>เลข</th>
+      <th>บน</th>
+      <th>เลข</th>
+      <th>บน</th>
+    </tr>
+  </table>
+
+  <script>
+    let sendSummary = {};
+    let currentBill = 1;
+
+    window.onload = () => {
+      const savedSend = localStorage.getItem('lottoSend');
+      const savedBill = localStorage.getItem('lottoSendBill');
+      if (savedSend) {
+        sendSummary = JSON.parse(savedSend);
+      }
+      if (savedBill) {
+        currentBill = Number(savedBill) || 1;
+      }
+      document.getElementById('billNo').innerText = String(currentBill);
+      updateSendTables();
+    };
+
+    function updateSendTables() {
+      const allKeys = Object.keys(sendSummary).sort((a, b) => a.localeCompare(b));
+
+      render('summaryTable1', allKeys.filter(k => k.length === 1), false, false);
+      render('summaryTable2', allKeys.filter(k => k.length === 2), false, false);
+      render('summaryTable3', allKeys.filter(k => k.length === 3), true, true);
+      render('summaryTable4', allKeys.filter(k => k.length === 4), false, true);
+      render('summaryTable5', allKeys.filter(k => k.length === 5), false, true);
+    }
+
+    function render(tableId, keys, isThree, isTopOnly) {
+      const table = document.getElementById(tableId);
+      if (!table) return;
+
+      // header คงเดิม สร้างแถวข้อมูลเท่านั้น
+      // จัดเรียงลงก่อนแล้วค่อยขวา
+      const rows = Math.ceil(keys.length / 2);
+      // ลบทุกรายการข้อมูลเดิม (ยกเว้น head)
+      while (table.rows.length > 1) table.deleteRow(-1);
+
+      for (let i = 0; i < rows; i++) {
+        const row = table.insertRow(-1);
+        const leftKey = keys[i];
+        const rightKey = keys[i + rows];
+
+        // ซ้าย
+        if (leftKey) {
+          row.insertCell(0).innerText = leftKey;
+          if (isThree) {
+            row.insertCell(1).innerText = (sendSummary[leftKey].straight || 0) + ' บาท';
+            row.insertCell(2).innerText = (sendSummary[leftKey].tod || 0) + ' บาท';
+            row.insertCell(3).innerText = (sendSummary[leftKey].bottom || 0) + ' บาท';
+          } else if (isTopOnly) {
+            row.insertCell(1).innerText = (sendSummary[leftKey].top || 0) + ' บาท';
+          } else {
+            row.insertCell(1).innerText = (sendSummary[leftKey].top || 0) + ' บาท';
+            row.insertCell(2).innerText = (sendSummary[leftKey].bottom || 0) + ' บาท';
+          }
+        } else {
+          row.insertCell(0).innerText = '';
+          const cols = isThree ? 3 : (isTopOnly ? 1 : 2);
+          for (let j = 0; j < cols; j++) row.insertCell(1 + j).innerText = '';
+        }
+
+        // ขวา
+        if (rightKey) {
+          const start = isThree ? 4 : (isTopOnly ? 2 : 3);
+          row.insertCell(start).innerText = rightKey;
+          if (isThree) {
+            row.insertCell(start + 1).innerText = (sendSummary[rightKey].straight || 0) + ' บาท';
+            row.insertCell(start + 2).innerText = (sendSummary[rightKey].tod || 0) + ' บาท';
+            row.insertCell(start + 3).innerText = (sendSummary[rightKey].bottom || 0) + ' บาท';
+          } else if (isTopOnly) {
+            row.insertCell(start + 1).innerText = (sendSummary[rightKey].top || 0) + ' บาท';
+          } else {
+            row.insertCell(start + 1).innerText = (sendSummary[rightKey].top || 0) + ' บาท';
+            row.insertCell(start + 2).innerText = (sendSummary[rightKey].bottom || 0) + ' บาท';
+          }
+        } else {
+          const start = isThree ? 4 : (isTopOnly ? 2 : 3);
+          row.insertCell(start).innerText = '';
+          const cols = isThree ? 3 : (isTopOnly ? 1 : 2);
+          for (let j = 0; j < cols; j++) row.insertCell(start + 1 + j).innerText = '';
+        }
+      }
+    }
+
+    function closeBill() {
+      // เก็บบิลปัจจุบันเข้า history แล้วเริ่มบิลใหม่
+      const historyRaw = localStorage.getItem('lottoSendHistory');
+      const history = historyRaw ? JSON.parse(historyRaw) : [];
+      history.push({ bill: currentBill, data: sendSummary, closedAt: new Date().toISOString() });
+      localStorage.setItem('lottoSendHistory', JSON.stringify(history));
+
+      // เคลียร์ยอดส่ง และเพิ่มเลขบิลใหม่
+      sendSummary = {};
+      localStorage.setItem('lottoSend', JSON.stringify(sendSummary));
+      currentBill += 1;
+      localStorage.setItem('lottoSendBill', String(currentBill));
+
+      document.getElementById('billNo').innerText = String(currentBill);
+      updateSendTables();
+    }
+  </script>
+</body>
+</html>
+
